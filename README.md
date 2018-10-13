@@ -35,7 +35,16 @@ https://brainhub.eu/blog/opencv-react-native-image-processing/
 	d) targetSdkVersion.
 
 10. Add module dependency by Application -> Module Settings, and select the Dependencies tab. Click + icon at bottom, choose Module Dependency and select the imported OpenCV module. For Android Studio v1.2.2, to access to Module Settings : in the project view, right-click the dependent module -> Open Module Settings.
-11. `react-native run-ios` or `react-native run-android`.
+
+11. Add in the build.gradle of app into android {} put the follow:
+ 
+ sourceSets {
+        main {
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
+    }	
+
+12. `react-native run-ios` or `react-native run-android`.
 
 ## Additional notes
 In case of any `downloadAndInsertOpenCV.sh ` script related errors, please, check the paths inside this file and change them if they do not match yours.
