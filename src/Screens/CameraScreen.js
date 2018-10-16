@@ -1,18 +1,18 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 import {
   AppRegistry,
   View,
   Text,
   Platform,
   Image,
-  TouchableOpacity,
-} from 'react-native';
-import { RNCamera as Camera } from 'react-native-camera';
-import Toast, {DURATION} from 'react-native-easy-toast'
+  TouchableOpacity
+} from "react-native";
+import { RNCamera as Camera } from "react-native-camera";
+import Toast, { DURATION } from "react-native-easy-toast";
 
-import styles from '../Styles/Screens/CameraScreen';
-import OpenCV from '../NativeModules/OpenCV';
-import CircleWithinCircle from '../assets/svg/CircleWithinCircle';
+import styles from "../Styles/Screens/CameraScreen";
+import OpenCV from "../NativeModules/OpenCV";
+import CircleWithinCircle from "../assets/svg/CircleWithinCircle";
 
 export default class CameraScreen extends Component {
   constructor(props) {
@@ -20,7 +20,9 @@ export default class CameraScreen extends Component {
 
     this.takePicture = this.takePicture.bind(this);
     this.checkForBlurryImage = this.checkForBlurryImage.bind(this);
-    this.proceedWithCheckingBlurryImage = this.proceedWithCheckingBlurryImage.bind(this);
+    this.proceedWithCheckingBlurryImage = this.proceedWithCheckingBlurryImage.bind(
+      this
+    );
     this.repeatPhoto = this.repeatPhoto.bind(this);
     this.usePhoto = this.usePhoto.bind(this);
   }
@@ -28,20 +30,24 @@ export default class CameraScreen extends Component {
   state = {
     cameraPermission: false,
     photoAsBase64: {
-      content: '',
+      content: "",
       isPhotoPreview: false,
-      photoPath: '',
-    },
+      photoPath: ""
+    }
   };
 
   checkForBlurryImage(imageAsBase64) {
     return new Promise((resolve, reject) => {
-      if (Platform.OS === 'android') {
-        OpenCV.checkForBlurryImage(imageAsBase64, error => {
-          // error handling
-        }, msg => {
-          resolve(msg);
-        });
+      if (Platform.OS === "android") {
+        OpenCV.checkForBlurryImage(
+          imageAsBase64,
+          error => {
+            // error handling
+          },
+          msg => {
+            resolve(msg);
+          }
+        );
       } else {
         OpenCV.checkForBlurryImage(imageAsBase64, (error, dataArray) => {
           resolve(dataArray[0]);
@@ -53,16 +59,24 @@ export default class CameraScreen extends Component {
   proceedWithCheckingBlurryImage() {
     const { content, photoPath } = this.state.photoAsBase64;
 
-    this.checkForBlurryImage(content).then(blurryPhoto => {
-      if (blurryPhoto) {
-        this.refs.toast.show('Photo is blurred!',DURATION.FOREVER);
-        return this.repeatPhoto();
-      }
-      this.refs.toast.show('Photo is clear!', DURATION.FOREVER);
-      this.setState({ photoAsBase64: { ...this.state.photoAsBase64, isPhotoPreview: true, photoPath } });
-    }).catch(err => {
-      console.log('err', err)
-    });
+    this.checkForBlurryImage(content)
+      .then(blurryPhoto => {
+        // if (blurryPhoto) {
+        //   this.refs.toast.show("Photo is blurred!", DURATION.FOREVER);
+        //   return this.repeatPhoto();
+        // }
+        this.refs.toast.show("Photo is clear!", DURATION.LENGTH_SHORT);
+        this.setState({
+          photoAsBase64: {
+            ...this.state.photoAsBase64,
+            isPhotoPreview: true,
+            photoPath
+          }
+        });
+      })
+      .catch(err => {
+        console.log("err", err);
+      });
   }
 
   async takePicture() {
@@ -71,28 +85,47 @@ export default class CameraScreen extends Component {
       const data = await this.camera.takePictureAsync(options);
       this.setState({
         ...this.state,
-        photoAsBase64: { content: data.base64, isPhotoPreview: false, photoPath: data.uri },
+        photoAsBase64: {
+          content: data.base64,
+          isPhotoPreview: false,
+          photoPath: data.uri
+        }
       });
       this.proceedWithCheckingBlurryImage();
     }
   }
 
-
   repeatPhoto() {
     this.setState({
       ...this.state,
       photoAsBase64: {
-        content: '',
+        content: "",
         isPhotoPreview: false,
-        photoPath: '',
-      },
+        photoPath: ""
+      }
     });
   }
 
-  usePhoto() {
+  usePhoto(photoPath) {
     // do something, e.g. navigate
+    if (Platform.OS === "android") {
+      OpenCV.rotateImage(photoPath)
+        .then(result => {
+          console.log(result);
+          this.repeatPhoto();
+          this.refs.toast.show("Photo rotated!", DURATION.LENGTH_SHORT);
+        })
+        .catch(error => {
+          console.log(error);
+          this.refs.toast.show(""+error, DURATION.LENGTH_SHORT);
+        });
+    } else {
+      OpenCV.rotateImage(photoPath)
+        .then(result => console.log(result))
+        .catch(error => console.log(error));
+    }
+    this.refs.toast.show("Photo path:" + photoPath, DURATION.LENGTH_SHORT);
   }
-
 
   render() {
     if (this.state.photoAsBase64.isPhotoPreview) {
@@ -100,7 +133,9 @@ export default class CameraScreen extends Component {
         <View style={styles.container}>
           <Toast ref="toast" position="center" />
           <Image
-            source={{ uri: `data:image/png;base64,${this.state.photoAsBase64.content}` }}
+            source={{
+              uri: `data:image/png;base64,${this.state.photoAsBase64.content}`
+            }}
             style={styles.imagePreview}
           />
           <View style={styles.repeatPhotoContainer}>
@@ -111,10 +146,10 @@ export default class CameraScreen extends Component {
             </TouchableOpacity>
           </View>
           <View style={styles.usePhotoContainer}>
-            <TouchableOpacity onPress={this.usePhoto}>
-              <Text style={styles.photoPreviewUsePhotoText}>
-                Use photo
-              </Text>
+            <TouchableOpacity
+              onPress={() => this.usePhoto(this.state.photoAsBase64.photoPath)}
+            >
+              <Text style={styles.photoPreviewUsePhotoText}>Rotate photo</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -128,8 +163,10 @@ export default class CameraScreen extends Component {
             this.camera = cam;
           }}
           style={styles.preview}
-          permissionDialogTitle={'Permission to use camera'}
-          permissionDialogMessage={'We need your permission to use your camera phone'}
+          permissionDialogTitle={"Permission to use camera"}
+          permissionDialogMessage={
+            "We need your permission to use your camera phone"
+          }
         >
           <View style={styles.takePictureContainer}>
             <TouchableOpacity onPress={this.takePicture}>
@@ -145,5 +182,4 @@ export default class CameraScreen extends Component {
   }
 }
 
-
-AppRegistry.registerComponent('CameraScreen', () => CameraScreen);
+AppRegistry.registerComponent("CameraScreen", () => CameraScreen);
