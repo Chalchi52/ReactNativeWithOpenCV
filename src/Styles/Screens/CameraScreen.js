@@ -49,6 +49,21 @@ export default StyleSheet.create({
     borderStyle: 'dotted',
     borderRadius: 5,
   },
+  textDetectionContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 11,
+    width: '50%',
+    height: 120,
+    backgroundColor: '#000',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  photoPreviewTextDetectionText: {
+    color: '#abcfff',
+    fontSize: 15,
+    marginLeft: 20,
+  },
   photoPreviewRepeatPhotoText: {
     color: '#abcfff',
     fontSize: 15,

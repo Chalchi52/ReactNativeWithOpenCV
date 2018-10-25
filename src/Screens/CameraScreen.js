@@ -127,6 +127,26 @@ export default class CameraScreen extends Component {
     this.refs.toast.show("Photo path:" + photoPath, DURATION.LENGTH_SHORT);
   }
 
+  textDetection(photoPath){
+    if (Platform.OS === "android") {
+      OpenCV.textDetection(photoPath)
+        .then(result => {
+          console.log(result);
+          this.repeatPhoto();
+          this.refs.toast.show("Text detected!", DURATION.LENGTH_SHORT);
+        })
+        .catch(error => {
+          console.log(error);
+          this.refs.toast.show(""+error, DURATION.LENGTH_SHORT);
+        });
+    } else {
+      OpenCV.textDetection(photoPath)
+        .then(result => console.log(result))
+        .catch(error => console.log(error));
+    }
+    //this.refs.toast.show("Photo path:" + photoPath, DURATION.LENGTH_SHORT);
+  }
+
   render() {
     if (this.state.photoAsBase64.isPhotoPreview) {
       return (
@@ -142,6 +162,13 @@ export default class CameraScreen extends Component {
             <TouchableOpacity onPress={this.repeatPhoto}>
               <Text style={styles.photoPreviewRepeatPhotoText}>
                 Repeat photo
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.textDetectionContainer}>
+            <TouchableOpacity onPress={() => this.textDetection(this.state.photoAsBase64.photoPath)}>
+              <Text style={styles.photoPreviewTextDetectionText}>
+                Text detection
               </Text>
             </TouchableOpacity>
           </View>
